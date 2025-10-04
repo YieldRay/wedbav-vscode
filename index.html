@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      performance.mark("code/didStartRenderer");
+    </script>
+    <meta charset="utf-8" />
+
+    <!-- Mobile tweaks -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Code" />
+    <link rel="apple-touch-icon" href="https://unpkg.com/code-oss@1.104.3/code-192.png" />
+
+    <!-- Disable pinch zooming -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"
+    />
+
+    <!-- Workbench Icon/Manifest/CSS -->
+    <link rel="icon" href="https://unpkg.com/code-oss@1.104.3/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://unpkg.com/code-oss@1.104.3/out/vs/workbench/workbench.web.main.internal.css" />
+  </head>
+
+  <body aria-label="">
+    <style>
+      @import url(//unpkg.com/landsoul); // layer(landsoul);
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100vh;
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0 auto;
+        max-width: 380px;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+      }
+      header {
+        text-wrap: balance;
+      }
+      header,
+      article {
+        padding: 0 1rem;
+        margin: 4rem 0;
+      }
+
+      footer {
+        background: var(--landsoul-shadow);
+        padding: 1rem;
+      }
+      .grid {
+        display: grid;
+        grid-template-areas: "label input";
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      button {
+        width: 100%;
+      }
+    </style>
+
+    <header>
+      <h1>Login to WEDBAV</h1>
+    </header>
+
+    <form id="form">
+      <div class="grid">
+        <label for="endpoint">origin</label>
+        <input name="endpoint" id="endpoint" type="url" placeholder="https://wedbav.example.net" required />
+
+        <label for="username">username</label>
+        <input id="username" type="text" name="username" />
+
+        <label for="password">password</label>
+        <input id="password" type="password" name="password" />
+      </div>
+
+      <button>login</button>
+    </form>
+  </body>
+
+  <!-- Startup (do not modify order of script tags!) -->
+  <script>
+    const baseUrl = new URL("https://unpkg.com/code-oss@1.104.3/out/", window.location.href);
+    globalThis._VSCODE_FILE_ROOT = baseUrl.origin + baseUrl.pathname;
+  </script>
+  <script>
+    performance.mark("code/willLoadWorkbenchMain");
+  </script>
+  <!-- always ensure built in english NLS messages -->
+  <script type="module" src="https://unpkg.com/code-oss@1.104.3/out/nls.messages.js"></script>
+  <!-- attempt to load NLS messages in case non-english -->
+  <script type="module">
+    import(`https://unpkg.com/code-oss@1.104.3/nls/${navigator.language}/nls.messages.js`);
+  </script>
+  <script type="module">
+    import init from "https://unpkg.com/code-oss@1.104.3/workbench.js";
+    import(`https://unpkg.com/code-oss@1.104.3/nls/zh-CN/nls.messages.js`);
+
+    const form = document.getElementById("form");
+
+    if (!form.endpoint.value) {
+      form.endpoint.value = location.origin;
+    }
+
+    const query = localStorage.getItem("wedbav");
+    if (query) {
+      const params = new URLSearchParams(query);
+      for (const [key, value] of params) {
+        const input = form.querySelector(`[name="${key}"]`);
+        if (input) {
+          input.value = value;
+        }
+      }
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const sp = new URLSearchParams(new FormData(form));
+      useQuery(sp);
+    });
+
+    function useQuery(searchParams) {
+      if (!searchParams.get("endpoint")) {
+        alert("endpoint is required");
+        return;
+      }
+
+      const url = new URL(searchParams.get("endpoint"));
+      const query = searchParams.toString();
+      localStorage.setItem("wedbav", query);
+
+      document.body.innerHTML = "";
+
+      init(document.body, {
+        productConfiguration: {
+          nameShort: "wedbav",
+          nameLong: "wedbav",
+          applicationName: "wedbav",
+          dataFolderName: "",
+          extensionsGallery: {
+            serviceUrl: "https://open-vsx.org/vscode/gallery",
+            itemUrl: "https://open-vsx.org/vscode/item",
+            resourceUrlTemplate:
+              "https://openvsxorg.blob.core.windows.net/resources/{publisher}/{name}/{version}/{path}",
+          },
+          extensionEnabledApiProposals: {},
+          /** IMPORTANT CONFIG TO MAKE webWorkerExtensionHostIframe.html work */
+          webEndpointUrlTemplate: "https://unpkg.com/code-oss@1.104.3",
+          quality: "stable",
+        },
+        folderUri: {
+          scheme: "wedbav",
+          authority: url.host,
+          query,
+          path: url.pathname, // it is '/'
+        },
+        additionalBuiltinExtensions: [
+          {
+            scheme: location.protocol.replace(":", ""),
+            authority: location.host,
+            path: location.pathname + "extension/dist",
+          },
+        ],
+      });
+    }
+  </script>
+</html>
