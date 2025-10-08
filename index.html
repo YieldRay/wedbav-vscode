@@ -10,7 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Code" />
-    <link rel="apple-touch-icon" href="https://unpkg.com/code-oss@1.104.3/code-192.png" />
+    <link rel="apple-touch-icon" href="https://raw.esm.sh/code-oss@1.104.3/code-192.png" />
 
     <!-- Disable pinch zooming -->
     <meta
@@ -19,13 +19,16 @@
     />
 
     <!-- Workbench Icon/Manifest/CSS -->
-    <link rel="icon" href="https://unpkg.com/code-oss@1.104.3/favicon.ico" type="image/x-icon" />
-    <link rel="stylesheet" href="https://unpkg.com/code-oss@1.104.3/out/vs/workbench/workbench.web.main.internal.css" />
+    <link rel="icon" href="https://raw.esm.sh/code-oss@1.104.3/favicon.ico" type="image/x-icon" />
+    <link
+      rel="stylesheet"
+      href="https://raw.esm.sh/code-oss@1.104.3/out/vs/workbench/workbench.web.main.internal.css"
+    />
   </head>
 
   <body aria-label="">
     <style>
-      @import url(//unpkg.com/landsoul); // layer(landsoul);
+      @import url(//raw.esm.sh/landsoul); // layer(landsoul);
 
       html,
       body {
@@ -69,7 +72,7 @@
 
     <form id="form">
       <div class="grid">
-        <label for="endpoint">origin</label>
+        <label for="endpoint">endpoint</label>
         <input name="endpoint" id="endpoint" type="url" placeholder="https://wedbav.example.net" required />
 
         <label for="username">username</label>
@@ -83,30 +86,10 @@
     </form>
   </body>
 
-  <!-- Startup (do not modify order of script tags!) -->
-  <script>
-    const baseUrl = new URL("https://unpkg.com/code-oss@1.104.3/out/", window.location.href);
-    globalThis._VSCODE_FILE_ROOT = baseUrl.origin + baseUrl.pathname;
-  </script>
-  <script>
-    performance.mark("code/willLoadWorkbenchMain");
-  </script>
-  <!-- always ensure built in english NLS messages -->
-  <script type="module" src="https://unpkg.com/code-oss@1.104.3/out/nls.messages.js"></script>
-  <!-- attempt to load NLS messages in case non-english -->
   <script type="module">
-    import(`https://unpkg.com/code-oss@1.104.3/nls/${navigator.language}/nls.messages.js`);
-  </script>
-  <script type="module">
-    import init from "https://unpkg.com/code-oss@1.104.3/workbench.js";
-    import(`https://unpkg.com/code-oss@1.104.3/nls/zh-CN/nls.messages.js`);
-
     const form = document.getElementById("form");
 
-    if (!form.endpoint.value) {
-      form.endpoint.value = location.origin;
-    }
-
+    // first, restore from localStorage
     const query = localStorage.getItem("wedbav");
     if (query) {
       const params = new URLSearchParams(query);
@@ -117,6 +100,40 @@
         }
       }
     }
+
+    // second, override from URL query parameters
+    const searchParams = new URLSearchParams(location.search);
+    for (const prop of ["endpoint", "username", "password"]) {
+      if (searchParams.has(prop)) {
+        form[prop].value = searchParams.get(prop);
+      }
+    }
+
+    // finally, default endpoint to current origin
+    if (!form.endpoint.value) {
+      form.endpoint.value = location.origin;
+    }
+  </script>
+
+  <!-- Startup (do not modify order of script tags!) -->
+  <script>
+    const baseUrl = new URL("https://raw.esm.sh/code-oss@1.104.3/out/", window.location.href);
+    globalThis._VSCODE_FILE_ROOT = baseUrl.origin + baseUrl.pathname;
+  </script>
+  <script>
+    performance.mark("code/willLoadWorkbenchMain");
+  </script>
+  <!-- always ensure built in english NLS messages -->
+  <script type="module" src="https://raw.esm.sh/code-oss@1.104.3/out/nls.messages.js"></script>
+  <!-- attempt to load NLS messages in case non-english -->
+  <script type="module">
+    import(`https://raw.esm.sh/code-oss@1.104.3/nls/${navigator.language}/nls.messages.js`);
+  </script>
+  <script type="module">
+    import init from "https://raw.esm.sh/code-oss@1.104.3/workbench.js";
+    import(`https://raw.esm.sh/code-oss@1.104.3/nls/zh-CN/nls.messages.js`);
+
+    const form = document.getElementById("form");
 
     form.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -150,7 +167,7 @@
           },
           extensionEnabledApiProposals: {},
           /** IMPORTANT CONFIG TO MAKE webWorkerExtensionHostIframe.html work */
-          webEndpointUrlTemplate: "https://unpkg.com/code-oss@1.104.3",
+          webEndpointUrlTemplate: "https://raw.esm.sh/code-oss@1.104.3",
           quality: "stable",
         },
         folderUri: {
