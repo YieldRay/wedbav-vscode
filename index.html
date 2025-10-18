@@ -10,7 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Code" />
-    <link rel="apple-touch-icon" href="https://raw.esm.sh/code-oss@1.104.3/code-192.png" />
+    <link rel="apple-touch-icon" href="https://raw.esm.sh/code-oss@1.105.1/code-192.png" />
 
     <!-- Disable pinch zooming -->
     <meta
@@ -19,10 +19,10 @@
     />
 
     <!-- Workbench Icon/Manifest/CSS -->
-    <link rel="icon" href="https://raw.esm.sh/code-oss@1.104.3/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="https://raw.esm.sh/code-oss@1.105.1/favicon.ico" type="image/x-icon" />
     <link
       rel="stylesheet"
-      href="https://raw.esm.sh/code-oss@1.104.3/out/vs/workbench/workbench.web.main.internal.css"
+      href="https://raw.esm.sh/code-oss@1.105.1/out/vs/workbench/workbench.web.main.internal.css"
     />
   </head>
 
@@ -117,21 +117,21 @@
 
   <!-- Startup (do not modify order of script tags!) -->
   <script>
-    const baseUrl = new URL("https://raw.esm.sh/code-oss@1.104.3/out/", window.location.href);
+    const baseUrl = new URL("https://raw.esm.sh/code-oss@1.105.1/out/", window.location.href);
     globalThis._VSCODE_FILE_ROOT = baseUrl.origin + baseUrl.pathname;
   </script>
   <script>
     performance.mark("code/willLoadWorkbenchMain");
   </script>
   <!-- always ensure built in english NLS messages -->
-  <script type="module" src="https://raw.esm.sh/code-oss@1.104.3/out/nls.messages.js"></script>
+  <script type="module" src="https://raw.esm.sh/code-oss@1.105.1/out/nls.messages.js"></script>
   <!-- attempt to load NLS messages in case non-english -->
   <script type="module">
-    import(`https://raw.esm.sh/code-oss@1.104.3/nls/${navigator.language}/nls.messages.js`);
+    import(`https://raw.esm.sh/code-oss@1.105.1/nls/${navigator.language}/nls.messages.js`);
   </script>
   <script type="module">
-    import init from "https://raw.esm.sh/code-oss@1.104.3/workbench.js";
-    import(`https://raw.esm.sh/code-oss@1.104.3/nls/zh-CN/nls.messages.js`);
+    import init from "https://raw.esm.sh/code-oss@1.105.1/workbench.js";
+    import(`https://raw.esm.sh/code-oss@1.105.1/nls/zh-cn/nls.messages.js`);
 
     const form = document.getElementById("form");
 
@@ -167,7 +167,7 @@
           },
           extensionEnabledApiProposals: {},
           /** IMPORTANT CONFIG TO MAKE webWorkerExtensionHostIframe.html work */
-          webEndpointUrlTemplate: "https://raw.esm.sh/code-oss@1.104.3",
+          webEndpointUrlTemplate: "https://raw.esm.sh/code-oss@1.105.1",
           quality: "stable",
         },
         folderUri: {

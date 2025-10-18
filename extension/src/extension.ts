@@ -37,6 +37,21 @@ export class WedbavFs implements vscode.FileSystemProvider, vscode.Disposable {
         headers: { Authorization: `Basic ${btoa(`${username}:${password}`)}`, Accept: "application/json" },
       },
       endpoint,
+      fetchFn: async (input, init) => {
+        const req = new Request(input, init);
+        try {
+          const res = await fetch(req);
+          if (!res.ok) {
+            vscode.window.showInformationMessage(
+              `WedbavFs: Not OK when ${req.method} ${req.url}\n${res.status} ${res.statusText}`
+            );
+          }
+          return res;
+        } catch (err) {
+          vscode.window.showInformationMessage(`WedbavFs: Failed to ${req.method} ${req.url}\n${err}`);
+          throw err;
+        }
+      },
     });
   }
 
