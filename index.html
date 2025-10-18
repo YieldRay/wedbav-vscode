@@ -20,70 +20,86 @@
 
     <!-- Workbench Icon/Manifest/CSS -->
     <link rel="icon" href="https://raw.esm.sh/code-oss@1.105.1/favicon.ico" type="image/x-icon" />
-    <link
-      rel="stylesheet"
-      href="https://raw.esm.sh/code-oss@1.105.1/out/vs/workbench/workbench.web.main.internal.css"
-    />
   </head>
 
   <body aria-label="">
     <style>
-      @import url(//raw.esm.sh/landsoul); // layer(landsoul);
+      @import url(//raw.esm.sh/varvara-css/dist/varvara.css);
 
-      html,
+      @keyframes bg-scrolling-reverse {
+        100% {
+          background-position: 50px 50px;
+        }
+      }
+      @keyframes bg-scrolling {
+        0% {
+          background-position: 50px 50px;
+        }
+      }
+      :root {
+        background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAABnSURBVHja7M5RDYAwDEXRDgmvEocnlrQS2SwUFST9uEfBGWs9c97nbGtDcquqiKhOImLs/UpuzVzWEi1atGjRokWLFi1atGjRokWLFi1atGjRokWLFi1af7Ukz8xWp8z8AAAA//8DAJ4LoEAAlL1nAAAAAElFTkSuQmCC")
+          repeat 0 0;
+        animation: bg-scrolling-reverse calc(0.92s * 3) infinite;
+        animation-timing-function: linear;
+      }
+
       body {
         margin: 0;
-        min-height: 100vh;
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0 auto;
-        max-width: 380px;
-        display: grid;
-        grid-template-rows: auto 1fr auto;
-      }
-      header {
-        text-wrap: balance;
-      }
-      header,
-      article {
-        padding: 0 1rem;
-        margin: 4rem 0;
       }
 
-      footer {
-        background: var(--landsoul-shadow);
-        padding: 1rem;
-      }
-      .grid {
+      main {
+        min-height: 100vh;
         display: grid;
-        grid-template-areas: "label input";
-        gap: 0.5rem;
-        margin-bottom: 1rem;
+        place-items: center;
       }
-      button {
-        width: 100%;
+
+      #form {
+        max-width: 400px;
+        padding: 1rem;
+        margin-inline: auto;
+      }
+
+      #form label {
+        margin-bottom: 8px;
       }
     </style>
 
-    <header>
-      <h1>Login to WEDBAV</h1>
-    </header>
+    <main>
+      <form id="form">
+        <div class="va-card w-full">
+          <div class="va-card__body">
+            <h1 class="va-card__title">Login to WEDBAV</h1>
 
-    <form id="form">
-      <div class="grid">
-        <label for="endpoint">endpoint</label>
-        <input name="endpoint" id="endpoint" type="url" placeholder="https://wedbav.example.net" required />
+            <label for="endpoint">
+              <span>endpoint</span>
+              <input
+                class="va-input"
+                name="endpoint"
+                id="endpoint"
+                type="url"
+                placeholder="https://wedbav.example.net"
+                required
+              />
+            </label>
 
-        <label for="username">username</label>
-        <input id="username" type="text" name="username" />
+            <label for="username">
+              <span>username</span>
+              <input class="va-input" id="username" type="text" name="username" />
+            </label>
 
-        <label for="password">password</label>
-        <input id="password" type="password" name="password" />
-      </div>
+            <label for="password">
+              <span>password</span>
+              <input class="va-input" id="password" type="password" name="password" />
+            </label>
+          </div>
 
-      <button>login</button>
-    </form>
+          <div class="va-card__actions">
+            <input type="reset" class="va-button" value="RESET" />
+            <input type="submit" class="va-button" value="LOGIN" style="text-align: right" />
+          </div>
+        </div>
+      </form>
+    </main>
   </body>
 
   <script type="module">
@@ -127,11 +143,10 @@
   <script type="module" src="https://raw.esm.sh/code-oss@1.105.1/out/nls.messages.js"></script>
   <!-- attempt to load NLS messages in case non-english -->
   <script type="module">
-    import(`https://raw.esm.sh/code-oss@1.105.1/nls/${navigator.language}/nls.messages.js`);
+    import(`https://raw.esm.sh/code-oss@1.105.1/nls/${navigator.language.toLowerCase()}/nls.messages.js`);
   </script>
   <script type="module">
     import init from "https://raw.esm.sh/code-oss@1.105.1/workbench.js";
-    import(`https://raw.esm.sh/code-oss@1.105.1/nls/zh-cn/nls.messages.js`);
 
     const form = document.getElementById("form");
 
@@ -151,8 +166,16 @@
       const query = searchParams.toString();
       localStorage.setItem("wedbav", query);
 
+      // clear body
       document.body.innerHTML = "";
 
+      // load workbench CSS
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "https://raw.esm.sh/code-oss@1.105.1/out/vs/workbench/workbench.web.main.internal.css";
+      document.head.appendChild(link);
+
+      // init workbench
       init(document.body, {
         productConfiguration: {
           nameShort: "wedbav",
