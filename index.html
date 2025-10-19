@@ -62,6 +62,19 @@
       #form label {
         margin-bottom: 8px;
       }
+
+      footer {
+        position: fixed;
+        box-sizing: border-box;
+        width: 100%;
+        bottom: 0;
+        border-top: var(--va-border-width) var(--va-border-color) dashed;
+        font-size: 80%;
+        padding: 2px 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
     </style>
 
     <main>
@@ -100,6 +113,13 @@
         </div>
       </form>
     </main>
+
+    <footer>
+      <span> <strong>wedbav-vscode</strong><span>@1.105.1</span> </span>
+      <a href="https://github.com/YieldRay/wedbav-vscode" class="va-link" style="color: var(--va-color-primary)">
+        Github
+      </a>
+    </footer>
   </body>
 
   <script type="module">
@@ -141,10 +161,6 @@
   </script>
   <!-- always ensure built in english NLS messages -->
   <script type="module" src="https://raw.esm.sh/code-oss@1.105.1/out/nls.messages.js"></script>
-  <!-- attempt to load NLS messages in case non-english -->
-  <script type="module">
-    import(`https://raw.esm.sh/code-oss@1.105.1/nls/${navigator.language.toLowerCase()}/nls.messages.js`);
-  </script>
   <script type="module">
     import init from "https://raw.esm.sh/code-oss@1.105.1/workbench.js";
 
@@ -156,7 +172,7 @@
       useQuery(sp);
     });
 
-    function useQuery(searchParams) {
+    async function useQuery(searchParams) {
       if (!searchParams.get("endpoint")) {
         alert("endpoint is required");
         return;
@@ -166,14 +182,29 @@
       const query = searchParams.toString();
       localStorage.setItem("wedbav", query);
 
-      // clear body
-      document.body.innerHTML = "";
+      // show loading
+      form.innerHTML = /*html*/ `<h2 class="va-loading-dots">Loading</h2>`;
 
       // load workbench CSS
       const link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = "https://raw.esm.sh/code-oss@1.105.1/out/vs/workbench/workbench.web.main.internal.css";
       document.head.appendChild(link);
+      await new Promise((resolve, reject) => {
+        link.onload = resolve;
+        link.onerror = reject;
+      });
+
+      // load NLS for user's locale (with timeout fallback)
+      await Promise.any([
+        import(`https://raw.esm.sh/code-oss@1.105.1/nls/${navigator.language.toLowerCase()}/nls.messages.js`).catch(
+          () => {}
+        ),
+        new Promise((resolve) => setTimeout(resolve, 5000)),
+      ]);
+
+      // clear body
+      document.body.innerHTML = "";
 
       // init workbench
       init(document.body, {
