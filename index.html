@@ -225,7 +225,8 @@
           quality: "stable",
         },
         folderUri: {
-          scheme: "wedbav",
+          // TODO: add selector for wedbav | webdav, now default to wedbav
+          scheme: searchParams.get("scheme") === "webdav" ? "webdav" : "wedbav",
           authority: url.host,
           query,
           path: url.pathname, // it is '/'

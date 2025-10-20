@@ -47,7 +47,8 @@
   "dependencies": {
     "buffer": "^6.0.3",
     "fets": "^0.8.5",
-    "js-base64": "^3.7.8"
+    "js-base64": "^3.7.8",
+    "webdav": "^5.8.0"
   },
   "devDependencies": {
     "@types/node": "^22.18.11",
