@@ -16,7 +16,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onFileSystem:wedbav"
+    "onFileSystem:wedbav",
+    "onFileSystem:webdav"
   ],
   "main": "./extension.js",
   "browser": "./extension.js",
@@ -47,11 +48,10 @@
   "dependencies": {
     "buffer": "^6.0.3",
     "fets": "^0.8.5",
-    "js-base64": "^3.7.8",
-    "webdav": "^5.8.0"
+    "js-base64": "^3.7.8"
   },
   "devDependencies": {
-    "@types/node": "^22.18.11",
+    "@types/node": "^22.18.12",
     "@types/vscode": "^1.105.0",
     "esbuild-loader": "^4.4.0",
     "esbuild-register": "^3.6.0",

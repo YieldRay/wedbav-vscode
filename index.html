@@ -75,6 +75,59 @@
         align-items: center;
         justify-content: space-between;
       }
+
+      select.va-select {
+        interpolate-size: allow-keywords;
+        transition: width 0.2s ease, height 0.2s ease;
+
+        &,
+        &::picker(select) {
+          appearance: base-select;
+          border-radius: 0;
+        }
+
+        &::picker(select) {
+          border: solid var(--va-border-width) var(--va-border-color);
+          background-color: var(--va-background-color-default);
+          transition: display 0.2s allow-discrete, overlay 0.2s allow-discrete, opacity 0.2s ease,
+            transform 0.2s ease-in-out;
+        }
+
+        /* off stage */
+        &:not(:open)::picker(select) {
+          opacity: 0;
+          transform: scale(0.95);
+          transition-duration: 0.1s;
+        }
+        /* on stage */
+        &:open::picker(select) {
+          opacity: 1;
+          @starting-style {
+            opacity: 0.25;
+          }
+        }
+
+        &::picker-icon {
+          display: none;
+        }
+
+        option {
+          height: calc(var(--va-button-padding) * 2 + var(--va-button-font-size));
+          padding-inline: var(--va-button-padding);
+          transition: background-color 0.2s ease, outline-offset 0.2s ease;
+          &:focus-visible {
+            outline: 2px solid rgb(from var(--va-color-primary) r g b / 0.5);
+            outline-offset: -2px;
+          }
+          &:checked {
+            background-color: var(--va-color-primary);
+            &,
+            &::checkmark {
+              color: var(--va-background-color-default);
+            }
+          }
+        }
+      }
     </style>
 
     <main>
@@ -107,7 +160,13 @@
           </div>
 
           <div class="va-card__actions">
-            <input type="reset" class="va-button" value="RESET" />
+            <label for="scheme">
+              <span>scheme</span>
+              <select class="va-select" name="scheme" id="scheme">
+                <option selected value="wedbav">wedbav</option>
+                <option value="webdav">webdav</option>
+              </select>
+            </label>
             <input type="submit" class="va-button" value="LOGIN" style="text-align: right" />
           </div>
         </div>
@@ -162,8 +221,6 @@
   <!-- always ensure built in english NLS messages -->
   <script type="module" src="https://raw.esm.sh/code-oss@1.105.1/out/nls.messages.js"></script>
   <script type="module">
-    import init from "https://raw.esm.sh/code-oss@1.105.1/workbench.js";
-
     const form = document.getElementById("form");
 
     form.addEventListener("submit", (e) => {
@@ -185,15 +242,19 @@
       // show loading
       form.innerHTML = /*html*/ `<h2 class="va-loading-dots">Loading</h2>`;
 
-      // load workbench CSS
+      // load workbench
       const link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = "https://raw.esm.sh/code-oss@1.105.1/out/vs/workbench/workbench.web.main.internal.css";
       document.head.appendChild(link);
-      await new Promise((resolve, reject) => {
-        link.onload = resolve;
-        link.onerror = reject;
-      });
+
+      const [{ default: init }] = await Promise.all([
+        import("https://raw.esm.sh/code-oss@1.105.1/workbench.js"),
+        new Promise((resolve, reject) => {
+          link.onload = resolve;
+          link.onerror = reject;
+        }),
+      ]);
 
       // load NLS for user's locale (with timeout fallback)
       await Promise.any([
@@ -225,7 +286,7 @@
           quality: "stable",
         },
         folderUri: {
-          // TODO: add selector for wedbav | webdav, now default to wedbav
+          // default to wedbav
           scheme: searchParams.get("scheme") === "webdav" ? "webdav" : "wedbav",
           authority: url.host,
           query,

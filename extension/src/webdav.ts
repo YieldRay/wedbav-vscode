@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import { createClient, type BufferLike, type FileStat } from "webdav/web";
+import { createClient, type WebDAVStat } from "./webdav-client";
 
-function toVscodeFileType(t: FileStat["type"]): vscode.FileType {
+function toVscodeFileType(t: WebDAVStat["type"]): vscode.FileType {
   switch (t) {
     case "file":
       return vscode.FileType.File;
@@ -19,7 +19,8 @@ export class WebdavFs implements vscode.FileSystemProvider, vscode.Disposable {
     const username = searchParams.get("username")!;
     const password = searchParams.get("password")!;
 
-    return createClient(endpoint, {
+    return createClient({
+      baseURL: endpoint,
       username,
       password,
     });
@@ -28,9 +29,7 @@ export class WebdavFs implements vscode.FileSystemProvider, vscode.Disposable {
   // --- manage file metadata
   async stat(uri: vscode.Uri) {
     const client = this.getClient(uri);
-    const resp = (await client.stat(uri.path, {
-      details: false,
-    })) as FileStat;
+    const resp = await client.stat(uri.path);
 
     return {
       type: toVscodeFileType(resp.type),
@@ -42,10 +41,7 @@ export class WebdavFs implements vscode.FileSystemProvider, vscode.Disposable {
 
   async readDirectory(uri: vscode.Uri) {
     const client = this.getClient(uri);
-    const resp = (await client.getDirectoryContents(uri.path, {
-      deep: false,
-      details: true,
-    })) as FileStat[];
+    const resp = await client.getDirectoryContents(uri.path, 1);
 
     return resp.map((entry) => [entry.basename, toVscodeFileType(entry.type)] satisfies [string, vscode.FileType]);
   }
@@ -54,25 +50,13 @@ export class WebdavFs implements vscode.FileSystemProvider, vscode.Disposable {
 
   async readFile(uri: vscode.Uri) {
     const client = this.getClient(uri);
-    const resp = (await client.getFileContents(uri.path, {
-      format: "binary",
-      details: false,
-    })) as string | BufferLike;
-    return resp instanceof Uint8Array
-      ? resp
-      : resp instanceof ArrayBuffer
-      ? new Uint8Array(resp)
-      : new TextEncoder().encode(resp);
+    const resp = await client.getFileContents(uri.path);
+    return new Uint8Array(resp);
   }
 
-  async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean }) {
+  async writeFile(uri: vscode.Uri, content: Uint8Array<ArrayBuffer>, options: { create: boolean; overwrite: boolean }) {
     const client = this.getClient(uri);
-    const res = await client.putFileContents(uri.path, Buffer.from(content), {
-      overwrite: options.overwrite,
-    });
-    if (!res) {
-      throw new Error("Failed to write file");
-    }
+    await client.putFileContents(uri.path, content);
   }
 
   // --- manage files/folders
@@ -83,9 +67,7 @@ export class WebdavFs implements vscode.FileSystemProvider, vscode.Disposable {
     }
 
     const client = this.getClient(oldUri);
-    await client.moveFile(oldUri.path, newUri.path, {
-      overwrite: options.overwrite,
-    });
+    await client.moveFile(oldUri.path, newUri.path, options.overwrite);
   }
 
   async delete(uri: vscode.Uri, options: { recursive: boolean }) {
@@ -104,9 +86,7 @@ export class WebdavFs implements vscode.FileSystemProvider, vscode.Disposable {
     }
 
     const client = this.getClient(source);
-    await client.copyFile(source.path, destination.path, {
-      overwrite: options.overwrite,
-    });
+    await client.copyFile(source.path, destination.path, options.overwrite);
   }
 
   private _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();

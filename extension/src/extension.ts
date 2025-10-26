@@ -10,16 +10,18 @@ import { WebdavFs } from "./webdav";
 export async function activate(context: vscode.ExtensionContext) {
   console.log("Hello, WedbavFs!");
 
-  // by default use wedbav
-  const FS = context.storageUri?.scheme === "webdav" ? WebdavFs : WedbavFs;
-
-  const fs = new FS();
-  context.subscriptions.push(fs);
   context.subscriptions.push(
-    vscode.workspace.registerFileSystemProvider(context.storageUri!.scheme, fs, {
+    vscode.workspace.registerFileSystemProvider("wedbav", new WedbavFs(), {
       isCaseSensitive: true,
     })
   );
+
+  context.subscriptions.push(
+    vscode.workspace.registerFileSystemProvider("webdav", new WebdavFs(), {
+      isCaseSensitive: true,
+    })
+  );
+
   context.subscriptions.push(
     vscode.commands.registerCommand("wedbav.reset", async () => {
       vscode.window.showInformationMessage("TODO: wedbav");
