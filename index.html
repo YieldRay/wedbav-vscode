@@ -10,7 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Code" />
-    <link rel="apple-touch-icon" href="https://raw.esm.sh/code-oss@1.105.1/code-192.png" />
+    <link rel="apple-touch-icon" href="https://raw.esm.sh/code-oss@1.106.3/code-192.png" />
 
     <!-- Disable pinch zooming -->
     <meta
@@ -19,7 +19,7 @@
     />
 
     <!-- Workbench Icon/Manifest/CSS -->
-    <link rel="icon" href="https://raw.esm.sh/code-oss@1.105.1/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="https://raw.esm.sh/code-oss@1.106.3/favicon.ico" type="image/x-icon" />
   </head>
 
   <body aria-label="">
@@ -174,7 +174,7 @@
     </main>
 
     <footer>
-      <span> <strong>wedbav-vscode</strong><span>@1.105.1</span> </span>
+      <span> <strong>wedbav-vscode</strong><span>@1.106.3</span> </span>
       <a href="https://github.com/YieldRay/wedbav-vscode" class="va-link" style="color: var(--va-color-primary)">
         Github
       </a>
@@ -212,14 +212,14 @@
 
   <!-- Startup (do not modify order of script tags!) -->
   <script>
-    const baseUrl = new URL("https://raw.esm.sh/code-oss@1.105.1/out/", window.location.href);
+    const baseUrl = new URL("https://raw.esm.sh/code-oss@1.106.3/out/", window.location.href);
     globalThis._VSCODE_FILE_ROOT = baseUrl.origin + baseUrl.pathname;
   </script>
   <script>
     performance.mark("code/willLoadWorkbenchMain");
   </script>
   <!-- always ensure built in english NLS messages -->
-  <script type="module" src="https://raw.esm.sh/code-oss@1.105.1/out/nls.messages.js"></script>
+  <script type="module" src="https://raw.esm.sh/code-oss@1.106.3/out/nls.messages.js"></script>
   <script type="module">
     const form = document.getElementById("form");
 
@@ -245,11 +245,11 @@
       // load workbench
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "https://raw.esm.sh/code-oss@1.105.1/out/vs/workbench/workbench.web.main.internal.css";
+      link.href = "https://raw.esm.sh/code-oss@1.106.3/out/vs/workbench/workbench.web.main.internal.css";
       document.head.appendChild(link);
 
       const [{ default: init }] = await Promise.all([
-        import("https://raw.esm.sh/code-oss@1.105.1/workbench.js"),
+        import("https://raw.esm.sh/code-oss@1.106.3/workbench.js"),
         new Promise((resolve, reject) => {
           link.onload = resolve;
           link.onerror = reject;
@@ -258,7 +258,7 @@
 
       // load NLS for user's locale (with timeout fallback)
       await Promise.any([
-        import(`https://raw.esm.sh/code-oss@1.105.1/nls/${navigator.language.toLowerCase()}/nls.messages.js`).catch(
+        import(`https://raw.esm.sh/code-oss@1.106.3/nls/${navigator.language.toLowerCase()}/nls.messages.js`).catch(
           () => {}
         ),
         new Promise((resolve) => setTimeout(resolve, 5000)),
@@ -282,7 +282,7 @@
           },
           extensionEnabledApiProposals: {},
           /** IMPORTANT CONFIG TO MAKE webWorkerExtensionHostIframe.html work */
-          webEndpointUrlTemplate: "https://raw.esm.sh/code-oss@1.105.1",
+          webEndpointUrlTemplate: "https://raw.esm.sh/code-oss@1.106.3",
           quality: "stable",
         },
         folderUri: {
