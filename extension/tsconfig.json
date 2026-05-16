@@ -1,21 +1,16 @@
 {
-    "compilerOptions": {
-        "resolveJsonModule": true,
-        "esModuleInterop": true,
-        "strictNullChecks": true,
-        "module": "commonjs",
-        "target": "ES2024",
-        "lib": [
-            "ES2024",
-            "DOM"
-        ],
-        "outDir": "out",
-        "sourceMap": true,
-        "strict": true,
-        "rootDir": "."
-    },
-    "exclude": [
-        "node_modules",
-        ".vscode-test"
-    ]
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "strictNullChecks": true,
+    "module": "commonjs",
+    "target": "ES2024",
+    "lib": ["ES2024", "DOM"],
+    "outDir": "out",
+    "sourceMap": true,
+    "strict": true,
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "exclude": ["node_modules", ".vscode-test"]
 }
