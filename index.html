@@ -265,6 +265,10 @@
       const link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = "https://raw.esm.sh/code-oss@1.120.0/out/vs/workbench/workbench.web.main.internal.css";
+      const linkPromise = new Promise((resolve, reject) => {
+        link.onload = resolve;
+        link.onerror = reject;
+      });
       document.head.appendChild(link);
 
       // load NLS for user's locale (with timeout fallback)
@@ -277,10 +281,7 @@
 
       const [{ default: init }] = await Promise.all([
         import("https://raw.esm.sh/code-oss@1.120.0/workbench.js"),
-        new Promise((resolve, reject) => {
-          link.onload = resolve;
-          link.onerror = reject;
-        }),
+        linkPromise,
       ]);
 
       // clear body
