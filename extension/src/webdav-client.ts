@@ -1,4 +1,5 @@
 import { Base64 } from "js-base64";
+import * as vscode from "vscode";
 
 declare global {
   interface Uint8Array {
@@ -8,7 +9,7 @@ declare global {
   interface Uint8ArrayConstructor {
     fromBase64(
       string: string,
-      options?: { alphabet?: "base64" | "base64url"; lastChunkHandling?: "loose" | "strict" | "stop-before-partial" }
+      options?: { alphabet?: "base64" | "base64url"; lastChunkHandling?: "loose" | "strict" | "stop-before-partial" },
     ): Uint8Array;
   }
 }
@@ -70,7 +71,7 @@ export class WebDAVClient {
 
   constructor(options: WebDAVClientOptions) {
     if (!options.baseURL) {
-      throw new Error("baseURL is required");
+      throw vscode.FileSystemError.Unavailable("baseURL is required");
     }
 
     const base = new URL(options.baseURL);
@@ -243,7 +244,7 @@ export class WebDAVClient {
     options: {
       body?: BodyInit | null;
       headers?: Record<string, string>;
-    } = {}
+    } = {},
   ): Promise<Response> {
     const url = this.resolveRequestURL(path).toString();
     const headers = this.buildHeaders(options.headers);
@@ -277,7 +278,9 @@ export class WebDAVClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get directory contents: ${response.status} ${response.statusText}`);
+      throw vscode.FileSystemError.Unavailable(
+        `Failed to get directory contents: ${response.status} ${response.statusText}`,
+      );
     }
 
     const xml = await response.text();
@@ -305,8 +308,10 @@ export class WebDAVClient {
 </d:propfind>`,
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to stat resource: ${response.status} ${response.statusText}`);
+    if (response.status === 404) {
+      throw vscode.FileSystemError.FileNotFound(`Resource not found: ${path}`);
+    } else if (!response.ok) {
+      throw vscode.FileSystemError.Unavailable(`Failed to stat resource: ${response.status} ${response.statusText}`);
     }
 
     const xml = await response.text();
@@ -322,7 +327,7 @@ export class WebDAVClient {
       return stats[0];
     }
 
-    throw new Error(`Resource not found: ${path}`);
+    throw vscode.FileSystemError.FileNotFound(`Resource not found: ${path}`);
   }
 
   async exists(path: string): Promise<boolean> {
@@ -330,17 +335,7 @@ export class WebDAVClient {
       await this.stat(path);
       return true;
     } catch (error) {
-      if (error instanceof Error) {
-        if (/Resource not found/i.test(error.message)) {
-          return false;
-        }
-
-        if (/Failed to stat resource:\s*404/.test(error.message)) {
-          return false;
-        }
-      }
-
-      throw error;
+      return false;
     }
   }
 
@@ -348,7 +343,9 @@ export class WebDAVClient {
     const response = await this.request("GET", path);
 
     if (!response.ok) {
-      throw new Error(`Failed to get file contents: ${response.status} ${response.statusText}`);
+      throw vscode.FileSystemError.Unavailable(
+        `Failed to get file contents: ${response.status} ${response.statusText}`,
+      );
     }
 
     return response.arrayBuffer();
@@ -363,7 +360,7 @@ export class WebDAVClient {
   async putFileContents(
     path: string,
     data: BodyInit | null,
-    options: { headers?: Record<string, string> } = {}
+    options: { headers?: Record<string, string> } = {},
   ): Promise<void> {
     const response = await this.request("PUT", path, {
       body: data,
@@ -371,7 +368,7 @@ export class WebDAVClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to write file: ${response.status} ${response.statusText}`);
+      throw vscode.FileSystemError.Unavailable(`Failed to write file: ${response.status} ${response.statusText}`);
     }
   }
 
@@ -379,7 +376,7 @@ export class WebDAVClient {
     const response = await this.request("MKCOL", path);
 
     if (!response.ok) {
-      throw new Error(`Failed to create directory: ${response.status} ${response.statusText}`);
+      throw vscode.FileSystemError.Unavailable(`Failed to create directory: ${response.status} ${response.statusText}`);
     }
   }
 
@@ -391,7 +388,7 @@ export class WebDAVClient {
     }
 
     if (!response.ok) {
-      throw new Error(`Failed to delete resource: ${response.status} ${response.statusText}`);
+      throw vscode.FileSystemError.Unavailable(`Failed to delete resource: ${response.status} ${response.statusText}`);
     }
   }
 
@@ -405,7 +402,7 @@ export class WebDAVClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to move resource: ${response.status} ${response.statusText}`);
+      throw vscode.FileSystemError.Unavailable(`Failed to move resource: ${response.status} ${response.statusText}`);
     }
   }
 
@@ -419,7 +416,7 @@ export class WebDAVClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to copy resource: ${response.status} ${response.statusText}`);
+      throw vscode.FileSystemError.Unavailable(`Failed to copy resource: ${response.status} ${response.statusText}`);
     }
   }
 
@@ -479,7 +476,7 @@ export class WebDAVClient {
       contentType?: string;
       modifiedAfter?: Date;
       modifiedBefore?: Date;
-    } = {}
+    } = {},
   ): Promise<WebDAVStat[]> {
     const clauses: string[] = [];
 
@@ -544,7 +541,7 @@ export class WebDAVClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to search: ${response.status} ${response.statusText}`);
+      throw vscode.FileSystemError.Unavailable(`Failed to search: ${response.status} ${response.statusText}`);
     }
 
     const xml = await response.text();
