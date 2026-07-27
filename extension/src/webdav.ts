@@ -1,104 +1,101 @@
 import * as vscode from "vscode";
-import { createClient, type WebDAVStat } from "./webdav-client";
+import { WebDAVClient, type WebDAVStat } from "./webdav-client";
 
-function toVscodeFileType(t: WebDAVStat["type"]): vscode.FileType {
-  switch (t) {
-    case "file":
-      return vscode.FileType.File;
-    case "directory":
-      return vscode.FileType.Directory;
-    default:
-      return vscode.FileType.Unknown;
-  }
-}
+const FILE_TYPE: Record<WebDAVStat["type"], vscode.FileType> = {
+  file: vscode.FileType.File,
+  directory: vscode.FileType.Directory,
+};
 
-export class WebdavFs implements vscode.FileSystemProvider, vscode.Disposable {
-  private getClient(uri: vscode.Uri) {
-    const searchParams = new URLSearchParams(uri.query);
-    const endpoint = searchParams.get("endpoint")!;
-    const username = searchParams.get("username")!;
-    const password = searchParams.get("password")!;
+/**
+ * Backs `webdav://` workspaces. Connection details (endpoint/username/password)
+ * travel in the URI query string, so each authority maps to one cached client.
+ */
+export class WebdavFs implements vscode.FileSystemProvider {
+  private readonly clients = new Map<string, WebDAVClient>();
+  private readonly emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
 
-    return createClient({
-      baseURL: endpoint,
-      username,
-      password,
-    });
+  readonly onDidChangeFile = this.emitter.event;
+
+  async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
+    const stat = await this.client(uri).stat(uri.path);
+    return this.toFileStat(stat);
   }
 
-  // --- manage file metadata
-  async stat(uri: vscode.Uri) {
-    const client = this.getClient(uri);
-    const resp = await client.stat(uri.path);
-
-    return {
-      type: toVscodeFileType(resp.type),
-      ctime: Number(resp.lastmod),
-      mtime: Number(resp.lastmod),
-      size: resp.size,
-    } satisfies vscode.FileStat;
+  async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
+    const entries = await this.client(uri).list(uri.path);
+    return entries.map((entry) => [entry.name, FILE_TYPE[entry.type]]);
   }
 
-  async readDirectory(uri: vscode.Uri) {
-    const client = this.getClient(uri);
-    const resp = await client.getDirectoryContents(uri.path, 1);
-
-    return resp.map((entry) => [entry.basename, toVscodeFileType(entry.type)] satisfies [string, vscode.FileType]);
+  readFile(uri: vscode.Uri): Promise<Uint8Array> {
+    return this.client(uri).read(uri.path);
   }
 
-  // --- manage file contents
-
-  async readFile(uri: vscode.Uri) {
-    const client = this.getClient(uri);
-    const resp = await client.getFileContents(uri.path);
-    return new Uint8Array(resp);
+  writeFile(uri: vscode.Uri, content: Uint8Array<ArrayBuffer>): Promise<void> {
+    return this.client(uri).write(uri.path, content);
   }
 
-  async writeFile(uri: vscode.Uri, content: Uint8Array<ArrayBuffer>, options: { create: boolean; overwrite: boolean }) {
-    const client = this.getClient(uri);
-    await client.putFileContents(uri.path, content);
+  createDirectory(uri: vscode.Uri): Promise<void> {
+    return this.client(uri).makeDirectory(uri.path);
   }
 
-  // --- manage files/folders
-
-  async rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean }) {
-    if (oldUri.authority !== newUri.authority) {
-      throw new Error("Cross-host renaming is not supported");
-    }
-
-    const client = this.getClient(oldUri);
-    await client.moveFile(oldUri.path, newUri.path, options.overwrite);
+  delete(uri: vscode.Uri): Promise<void> {
+    return this.client(uri).remove(uri.path);
   }
 
-  async delete(uri: vscode.Uri, options: { recursive: boolean }) {
-    const client = this.getClient(uri);
-    await client.deleteFile(uri.path);
+  rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean }): Promise<void> {
+    this.assertSameHost(oldUri, newUri, "rename");
+    return this.client(oldUri).move(oldUri.path, newUri.path, options.overwrite);
   }
 
-  async createDirectory(uri: vscode.Uri) {
-    const client = this.getClient(uri);
-    await client.createDirectory(uri.path);
+  copy(source: vscode.Uri, destination: vscode.Uri, options: { overwrite: boolean }): Promise<void> {
+    this.assertSameHost(source, destination, "copy");
+    return this.client(source).copy(source.path, destination.path, options.overwrite);
   }
 
-  async copy(source: vscode.Uri, destination: vscode.Uri, options: { readonly overwrite: boolean }) {
-    if (source.authority !== destination.authority) {
-      throw new Error("Cross-host copying is not supported");
-    }
-
-    const client = this.getClient(source);
-    await client.copyFile(source.path, destination.path, options.overwrite);
-  }
-
-  private _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
-
-  readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this._emitter.event;
-
-  watch(_resource: vscode.Uri): vscode.Disposable {
-    // ignore, fires for all changes...
+  watch(): vscode.Disposable {
+    // The server offers no change notifications; nothing to watch.
     return new vscode.Disposable(() => {});
   }
 
-  dispose() {
-    this._emitter.dispose();
+  dispose(): void {
+    this.emitter.dispose();
+    this.clients.clear();
+  }
+
+  private toFileStat(stat: WebDAVStat): vscode.FileStat {
+    return {
+      type: FILE_TYPE[stat.type],
+      ctime: stat.mtime,
+      mtime: stat.mtime,
+      size: stat.size,
+    };
+  }
+
+  private assertSameHost(a: vscode.Uri, b: vscode.Uri, operation: string): void {
+    if (a.authority !== b.authority) {
+      throw vscode.FileSystemError.NoPermissions(`Cross-host ${operation} is not supported`);
+    }
+  }
+
+  /** Resolve (and cache) the WebDAV client for the connection encoded in `uri`. */
+  private client(uri: vscode.Uri): WebDAVClient {
+    const cached = this.clients.get(uri.authority);
+    if (cached) {
+      return cached;
+    }
+
+    const params = new URLSearchParams(uri.query);
+    const endpoint = params.get("endpoint");
+    if (!endpoint) {
+      throw vscode.FileSystemError.Unavailable("Missing WebDAV endpoint in workspace URI");
+    }
+
+    const client = new WebDAVClient({
+      baseURL: endpoint,
+      username: params.get("username") ?? undefined,
+      password: params.get("password") ?? undefined,
+    });
+    this.clients.set(uri.authority, client);
+    return client;
   }
 }

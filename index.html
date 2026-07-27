@@ -10,7 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Code" />
-    <link rel="apple-touch-icon" href="https://raw.esm.sh/code-oss@1.120.0/code-192.png" />
+    <link rel="apple-touch-icon" href="https://raw.esm.sh/code-oss@1.126.0/code-192.png" />
 
     <!-- Disable pinch zooming -->
     <meta
@@ -19,7 +19,7 @@
     />
 
     <!-- Workbench Icon/Manifest/CSS -->
-    <link rel="icon" href="https://raw.esm.sh/code-oss@1.120.0/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="https://raw.esm.sh/code-oss@1.126.0/favicon.ico" type="image/x-icon" />
   </head>
 
   <body aria-label="">
@@ -170,8 +170,7 @@
             <label for="scheme">
               <span>scheme</span>
               <select class="va-select" name="scheme" id="scheme">
-                <option selected value="wedbav">wedbav</option>
-                <option value="webdav">webdav</option>
+                <option selected value="webdav">webdav</option>
               </select>
             </label>
             <input type="submit" class="va-button" value="LOGIN" style="text-align: right" />
@@ -181,7 +180,7 @@
     </main>
 
     <footer>
-      <span> <strong>wedbav-vscode</strong><span>@1.120.0</span> </span>
+      <span> <strong>wedbav-vscode</strong><span>@1.126.0</span> </span>
       <a href="https://github.com/YieldRay/wedbav-vscode" class="va-link" style="color: var(--va-color-primary)">
         Github
       </a>
@@ -219,7 +218,7 @@
 
   <!-- Startup (do not modify order of script tags!) -->
   <script>
-    const baseUrl = new URL("https://raw.esm.sh/code-oss@1.120.0/out/", window.location.href);
+    const baseUrl = new URL("https://raw.esm.sh/code-oss@1.126.0/out/", window.location.href);
     globalThis._VSCODE_FILE_ROOT = baseUrl.origin + baseUrl.pathname;
 
     if (window.trustedTypes) {
@@ -238,7 +237,7 @@
     performance.mark("code/willLoadWorkbenchMain");
   </script>
   <!-- always ensure built in english NLS messages -->
-  <script type="module" src="https://raw.esm.sh/code-oss@1.120.0/out/nls.messages.js"></script>
+  <script type="module" src="https://raw.esm.sh/code-oss@1.126.0/out/nls.messages.js"></script>
   <script type="module">
     const form = document.getElementById("form");
 
@@ -264,7 +263,7 @@
       // load workbench
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "https://raw.esm.sh/code-oss@1.120.0/out/vs/workbench/workbench.web.main.internal.css";
+      link.href = "https://raw.esm.sh/code-oss@1.126.0/out/vs/workbench/workbench.web.main.internal.css";
       const linkPromise = new Promise((resolve, reject) => {
         link.onload = resolve;
         link.onerror = reject;
@@ -273,14 +272,14 @@
 
       // load NLS for user's locale (with timeout fallback)
       await Promise.any([
-        import(`https://raw.esm.sh/code-oss@1.120.0/nls/${navigator.language.toLowerCase()}/nls.messages.js`).catch(
+        import(`https://raw.esm.sh/code-oss@1.126.0/nls/${navigator.language.toLowerCase()}/nls.messages.js`).catch(
           () => {},
         ),
         new Promise((resolve) => setTimeout(resolve, 5000)),
       ]);
 
       const [{ default: init }] = await Promise.all([
-        import("https://raw.esm.sh/code-oss@1.120.0/workbench.js"),
+        import("https://raw.esm.sh/code-oss@1.126.0/workbench.js"),
         linkPromise,
       ]);
 
@@ -302,12 +301,11 @@
           },
           extensionEnabledApiProposals: {},
           /** IMPORTANT CONFIG TO MAKE webWorkerExtensionHostIframe.html work */
-          webEndpointUrlTemplate: "https://raw.esm.sh/code-oss@1.120.0",
+          webEndpointUrlTemplate: "https://raw.esm.sh/code-oss@1.126.0",
           quality: "stable",
         },
         folderUri: {
-          // default to wedbav
-          scheme: searchParams.get("scheme") === "webdav" ? "webdav" : "wedbav",
+          scheme: "webdav",
           authority: url.host,
           query,
           path: url.pathname, // it is '/'

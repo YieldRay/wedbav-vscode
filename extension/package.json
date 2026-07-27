@@ -10,34 +10,16 @@
     "dist"
   ],
   "engines": {
-    "vscode": "1.120.0"
+    "vscode": "1.126.0"
   },
   "categories": [
     "Other"
   ],
   "activationEvents": [
-    "onFileSystem:wedbav",
     "onFileSystem:webdav"
   ],
   "main": "./extension.js",
   "browser": "./extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "wedbav.reset",
-        "title": "Delete Files",
-        "category": "WEDBAV"
-      }
-    ],
-    "menus": {
-      "commandPalette": [
-        {
-          "command": "wedbav.reset",
-          "when": "workbenchState == workspace"
-        }
-      ]
-    }
-  },
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
@@ -45,17 +27,15 @@
     "watch-web": "webpack --watch",
     "package-web": "webpack --mode production --devtool hidden-source-map"
   },
-  "dependencies": {
-    "buffer": "^6.0.3",
-    "fets": "^0.8.5",
-    "js-base64": "^3.7.8"
-  },
   "devDependencies": {
+    "@types/node": "^22.20.1",
     "@types/vscode": "1.106",
-    "@types/node": "^22.19.1",
-    "esbuild-loader": "^4.4.0",
+    "esbuild-loader": "^4.5.0",
     "esbuild-register": "^3.6.0",
-    "webpack": "^5.103.0",
+    "webpack": "^5.109.0",
     "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "txml": "^6.0.0"
   }
 }

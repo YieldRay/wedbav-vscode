@@ -32,17 +32,6 @@ const webExtensionConfig: webpack.Configuration = {
   resolve: {
     mainFields: ["browser", "module", "main"], // look for `browser` entry point in imported node modules
     extensions: [".ts", ".js"], // support ts-files and js-files
-    alias: {
-      // provides alternate implementation for node module and source files
-    },
-    fallback: {
-      // Webpack 5 no longer polyfills Node.js core modules automatically.
-      // see https://webpack.js.org/configuration/resolve/#resolvefallback
-      // for the list of Node.js core module polyfills.
-      buffer: require.resolve("buffer"),
-      // path: require.resolve("path-browserify"),
-      // process: require.resolve("process/browser"),
-    },
   },
   module: {
     rules: [
@@ -58,10 +47,6 @@ const webExtensionConfig: webpack.Configuration = {
     ],
   },
   plugins: [
-    new webpack.ProvidePlugin({
-      process: "process/browser", // provide a shim for the global `process` variable
-      Buffer: ["buffer", "Buffer"], // provide a shim for the global `Buffer` variable
-    }),
     new CopyFilesPlugin(["package.json", "package.nls.json"]),
     new EsbuildPlugin({
       // minify: true,
